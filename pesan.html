@@ -10,7 +10,7 @@
         body {
             font-family: 'Poppins', sans-serif;
             background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 99%, #fecfef 100%);
-            overflow-x: hidden; /* Mencegah scroll menyamping */
+            overflow-x: hidden;
             min-height: 100vh;
             margin: 0;
         }
@@ -19,7 +19,6 @@
             font-family: 'Caveat', cursive;
         }
 
-        /* Animasi Hati Beterbangan */
         @keyframes float {
             0% { transform: translateY(100vh) scale(0) rotate(0deg); opacity: 1; }
             100% { transform: translateY(-10vh) scale(1.5) rotate(360deg); opacity: 0; }
@@ -28,27 +27,11 @@
         .heart {
             position: fixed;
             color: #ff4d4d;
-            z-index: 1; /* Di belakang konten utama tapi di atas background */
+            z-index: 1;
             animation: float 4s ease-in infinite;
             pointer-events: none;
         }
 
-        /* Efek Berdetak untuk Tombol */
-        @keyframes heartbeat {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.1); }
-        }
-
-        .btn-heartbeat {
-            animation: heartbeat 1.5s infinite;
-        }
-
-        /* Transisi Layar */
-        .screen-transition {
-            transition: opacity 0.8s ease-in-out;
-        }
-
-        /* Kaca (Glassmorphism) */
         .glass-card {
             background: rgba(255, 255, 255, 0.65);
             backdrop-filter: blur(12px);
@@ -57,10 +40,9 @@
             box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
         }
 
-        /* Styling untuk foto agar terlihat seperti polaroid */
         .polaroid {
             background: white;
-            padding: 8px 8px 24px 8px; /* Padding bawah lebih besar untuk efek polaroid */
+            padding: 8px 8px 24px 8px;
             box-shadow: 0 4px 8px rgba(0,0,0,0.1);
             transform: rotate(-3deg);
             transition: transform 0.3s ease;
@@ -80,59 +62,54 @@
             height: 200px;
             object-fit: cover;
         }
+
+        /* Animasi masuk dari bawah ke atas */
+        .fade-in-up {
+            animation: fadeInUp 1s ease-out forwards;
+            opacity: 0;
+            transform: translateY(30px);
+        }
+
+        @keyframes fadeInUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
     </style>
 </head>
-<body class="relative text-gray-800">
+<body class="relative text-gray-800" onload="initPage()">
 
-    <!-- ELEMEN AUDIO (GANTI LINK LAGU DI SINI) -->
-    <!-- Format link lagu yang didukung biasanya .mp3 -->
+    <!-- ELEMEN AUDIO -->
     <audio id="bgMusic" loop>
-        <!-- CONTOH: Menggunakan file lokal atau link langsung mp3 -->
-        <!-- Kamu bisa mengupload file lagu.mp3 ke repository GitHub-mu, lalu ganti link di bawah menjadi "lagu.mp3" -->
-        <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" type="audio/mpeg">
+        <source src="lagu.mp3" type="audio/mpeg">
         Browser kamu tidak mendukung elemen audio.
     </audio>
 
-    <!-- Screen 1: Awal / Amplop -->
-    <div id="screen1" class="absolute top-0 left-0 w-full h-full flex flex-col items-center justify-center px-6 screen-transition z-50">
-        <div class="glass-card p-8 rounded-3xl text-center max-w-sm w-full">
-            <h1 class="text-3xl font-handwriting text-pink-600 mb-6">Halo Kesayanganku...</h1>
-            <p class="text-sm mb-8 text-gray-600">Ada pesan spesial nih buat kamu di tanggal 19 Juni ini 💌</p>
-            <button onclick="openMessage()" class="btn-heartbeat bg-pink-500 text-white font-semibold py-3 px-8 rounded-full shadow-lg hover:bg-pink-600 transition duration-300">
-                Buka Pesan ❤️
-            </button>
-        </div>
-    </div>
-
-    <!-- Screen 2: Isi Pesan & Galeri (Disembunyikan awalnya) -->
-    <div id="screen2" class="hidden opacity-0 screen-transition relative z-10 w-full min-h-screen py-10 px-4 md:px-6 flex flex-col items-center">
+    <!-- Isi Pesan & Galeri (Langsung Tampil dengan efek fade-in) -->
+    <div id="screen2" class="relative z-10 w-full min-h-screen py-10 px-4 md:px-6 flex flex-col items-center fade-in-up">
         
-        <!-- Tombol kontrol musik (opsional) -->
-        <button id="musicToggle" onclick="toggleMusic()" class="fixed top-4 right-4 bg-white/50 backdrop-blur-sm p-3 rounded-full shadow-md z-50 text-xl">
+        <!-- Tombol kontrol musik -->
+        <button id="musicToggle" onclick="toggleMusic()" class="fixed top-4 right-4 bg-white/50 backdrop-blur-sm p-3 rounded-full shadow-md z-50 text-xl cursor-pointer">
             🔊
         </button>
 
-        <div class="glass-card p-6 md:p-10 rounded-3xl text-center max-w-2xl w-full mb-8">
+        <div class="glass-card p-6 md:p-10 rounded-3xl text-center max-w-2xl w-full mb-8 mt-8">
             <h1 class="text-4xl md:text-5xl font-handwriting text-pink-600 mb-2">Happy 19th Birthday!</h1>
             <h2 class="text-xl font-semibold text-gray-700 mb-6">Sayangku 🎂✨</h2>
             
             <div class="space-y-4 text-sm md:text-base text-gray-700 leading-relaxed text-left">
                 <p>
-                    Selamat ulang tahun cintakuu 🎂💖
-                <p>
-                    Semoga di usia yang ke-19 ini, Tuhan selalu melimpahkan kesehatan, kebahagiaan, dan kelancaran untuk setiap langkah hidup kamu. Semoga apa yang sedang kamu perjuangkan dimudahkan jalannya, dan kamu terus tumbuh menjadi pribadi yang lebih baik lagi setiap harinya 🤲
+                    Yeayyy! Akhirnya sampai di umur 19 tahun. Selamat bertambah usia ya cintakuu! 🎉
                 </p>
                 <p>
-                    Terima kasih sudah hadir di hidup aku, sudah menemani, dan membuat hariku jadi lebih indah. Aku bangga banget punya kamu, dan akan selalu jadi pendukung nomor satu untuk semua impian dan usaha kamu. Kalau kamu lelah, istirahat aja — jangan pernah berpikir untuk menyerah, karena aku selalu ada di sisi kamu 🫂
+                    Di hari spesial kamu ini, aku berdoa semoga kamu selalu dikasih kesehatan, kebahagiaan yang nggak putus-putus, dan segala hal yang lagi kamu usahain dipermudah jalannya sama Tuhan.
                 </p>
                 <p>
-                    Aku sangat bersyukur bisa bertemu dan menjalin hubungan sama kamu. Semoga kita bisa terus bersama, melewati hari-hari baik dan sulit, serta merayakan setiap ulang tahun kamu dari sekarang sampai nanti, selamanya ya ❤️
+                    Makasih ya udah lahir ke dunia dan jadi kebahagiaan di hidup aku. Makasih udah mau nemenin aku, sabar sama aku, dan jadi pacar yang super hebat.
                 </p>
                 <p>
-                    Maaf kalau selama ini aku sering bikin kamu marah, kesal atau kecewa, tapi yang harus kamu tau rasa sayangku ke kamu nggak akan pernah berkurang sedikitpun.
-                </p>
-                <p>
-                    Sekali lagi, selamat ulang tahun sayangku! Aku sayang kamu selamanya 🤍 I love you so much!
+                    Apapun mimpi kamu ke depannya, inget ya sayang, aku bakal selalu ada di samping kamu. Aku akan selalu jadi <i>supporter</i> nomor satu kamu! Jangan pernah ngerasa sendiri, karena ada aku di sini 🫂.
                 </p>
                 <p class="text-center font-handwriting text-3xl text-pink-600 mt-8 font-bold">
                     I love you so much, sweetheart! 💗
@@ -145,33 +122,26 @@
             <h3 class="text-2xl font-handwriting text-pink-600 mb-6">Memories with you 📸</h3>
             
             <!-- Grid Foto -->
-            <!-- GANTI ISI atribut src="..." DENGAN LINK FOTOMU ATAU NAMA FILE FOTOMU -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6 px-4">
                 
-                <!-- Foto 1 -->
                 <div class="polaroid mx-auto max-w-[250px] w-full">
-                    <!-- Ganti src di bawah ini -->
                     <img src="https://images.unsplash.com/photo-1518199266791-5375a83164ba?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60" alt="Foto Kenangan 1">
                     <p class="font-handwriting mt-2 text-gray-600 text-lg">My favorite person</p>
                 </div>
 
-                <!-- Foto 2 -->
                 <div class="polaroid mx-auto max-w-[250px] w-full mt-4 md:mt-0">
-                    <!-- Ganti src di bawah ini -->
                     <img src="https://images.unsplash.com/photo-1522673607200-164d1b6ce486?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60" alt="Foto Kenangan 2">
                     <p class="font-handwriting mt-2 text-gray-600 text-lg">Selalu bareng ya!</p>
                 </div>
 
-                <!-- Foto 3 -->
                 <div class="polaroid mx-auto max-w-[250px] w-full mt-4 md:mt-0">
-                    <!-- Ganti src di bawah ini -->
                     <img src="https://images.unsplash.com/photo-1622323758558-8d1513e61e9b?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60" alt="Foto Kenangan 3">
                     <p class="font-handwriting mt-2 text-gray-600 text-lg">Happy birthday 🤍</p>
                 </div>
 
             </div>
 
-            <button onclick="addMoreHearts()" class="mt-10 bg-white border-2 border-pink-400 text-pink-500 font-semibold py-2 px-8 rounded-full hover:bg-pink-50 transition duration-300 shadow-sm z-20 relative">
+            <button onclick="addMoreHearts()" class="mt-10 bg-white border-2 border-pink-400 text-pink-500 font-semibold py-2 px-8 rounded-full hover:bg-pink-50 transition duration-300 shadow-sm z-20 relative cursor-pointer">
                 Pencet Aku! ✨
             </button>
         </div>
@@ -179,45 +149,39 @@
         <p class="mt-8 text-xs text-gray-500 font-handwriting text-xl mb-10">Dari orang yang paling sayang sama kamu ❤️</p>
     </div>
 
-    <!-- Container untuk hati beterbangan -->
+    <!-- Container Hati -->
     <div id="hearts-container" class="fixed top-0 left-0 w-full h-full pointer-events-none z-0 overflow-hidden"></div>
 
     <script>
         const music = document.getElementById('bgMusic');
         let isPlaying = false;
 
-        // Fungsi untuk membuka pesan dan memutar musik
-        function openMessage() {
-            // Putar Musik
-            music.play().then(() => {
-                isPlaying = true;
-                document.getElementById('musicToggle').innerText = '🔊';
-            }).catch((error) => {
-                console.log("Autoplay dicegah oleh browser. User harus menekan tombol musik.");
-                document.getElementById('musicToggle').innerText = '🔇';
-            });
-
-            // Transisi Layar
-            const screen1 = document.getElementById('screen1');
-            const screen2 = document.getElementById('screen2');
-
-            screen1.style.opacity = '0';
+        // Otomatis play musik dan hujan hati saat pesan.html terbuka
+        function initPage() {
+            let playPromise = music.play();
             
-            setTimeout(() => {
-                screen1.classList.add('hidden');
-                screen2.classList.remove('hidden');
-                
-                // Gunakan timeout kecil agar transisi opacity terlihat setelah display:block diterapkan
-                setTimeout(() => {
-                    screen2.style.opacity = '1';
-                }, 50);
-            }, 800);
+            if (playPromise !== undefined) {
+                playPromise.then(_ => {
+                    isPlaying = true;
+                    document.getElementById('musicToggle').innerText = '🔊';
+                }).catch(error => {
+                    document.getElementById('musicToggle').innerText = '🔇';
+                    document.body.addEventListener('click', forcePlayMusic, { once: true });
+                    document.body.addEventListener('touchstart', forcePlayMusic, { once: true });
+                });
+            }
 
-            // Mulai hujan hati
             startHeartRain();
         }
 
-        // Fungsi kontrol musik
+        function forcePlayMusic() {
+            if(!isPlaying) {
+                music.play();
+                isPlaying = true;
+                document.getElementById('musicToggle').innerText = '🔊';
+            }
+        }
+
         function toggleMusic() {
             if (isPlaying) {
                 music.pause();
@@ -229,7 +193,6 @@
             isPlaying = !isPlaying;
         }
 
-        // Fungsi membuat satu elemen hati
         function createHeart() {
             const heart = document.createElement('div');
             heart.classList.add('heart');
