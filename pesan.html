@@ -89,6 +89,8 @@
         }
         
     </style>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
 </head>
 <body class="relative text-gray-800" onload="initPage()">
 
@@ -193,10 +195,25 @@
     <div id="hearts-container" class="fixed top-0 left-0 w-full h-full pointer-events-none z-0 overflow-hidden"></div>
 
     <script>
-        const music = document.getElementById('bgMusic');
+                const music = document.getElementById('bgMusic');
         let isPlaying = false;
 
-        // Otomatis play musik dan hujan hati saat pesan.html terbuka
+        // --- KONFIGURASI FIREBASE KAMU ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyAt6Q0g4KCUMhGmBOjvkTI9ZtFfjJ1gojU",
+            authDomain: "kado-ultah-fathia.firebaseapp.com",
+            databaseURL: "https://kado-ultah-fathia-default-rtdb.firebaseio.com",
+            projectId: "kado-ultah-fathia",
+            storageBucket: "kado-ultah-fathia.firebasestorage.app",
+            messagingSenderId: "250674373887",
+            appId: "1:250674373887:web:181c3bc4aeeafa0bcd58ca"
+        };
+
+        // Inisialisasi Firebase
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
+        // Otomatis play musik, hujan hati, dan MUAT KOMENTAR DARI INTERNET
         function initPage() {
             let playPromise = music.play();
             
@@ -212,9 +229,62 @@
             }
 
             startHeartRain();
-            loadComments();
+            listenToComments(); // Panggil fungsi muat komentar
         }
 
+        // FUNGSI MEMBACA KOMENTAR SECARA REAL-TIME DARI FIREBASE
+        function listenToComments() {
+            const commentsList = document.getElementById('commentsList');
+            
+            database.ref('comments').on('value', (snapshot) => {
+                commentsList.innerHTML = ''; 
+                const data = snapshot.val();
+                
+                if (!data) {
+                    commentsList.innerHTML = '<p class="text-gray-500 text-center text-sm italic">Belum ada ucapan. Jadilah yang pertama!</p>';
+                    return;
+                }
+
+                const commentsArray = [];
+                for (let id in data) {
+                    commentsArray.push(data[id]);
+                }
+                commentsArray.reverse(); 
+
+                commentsArray.forEach(comment => {
+                    const commentEl = document.createElement('div');
+                    commentEl.className = 'bg-white/60 p-3 rounded-xl border border-pink-100 shadow-sm';
+                    commentEl.innerHTML = `
+                        <p class="font-semibold text-pink-600 text-sm">${comment.name} <span class="text-xs text-gray-400 font-normal ml-2">${comment.date}</span></p>
+                        <p class="text-gray-700 text-sm mt-1">${comment.text}</p>
+                    `;
+                    commentsList.appendChild(commentEl);
+                });
+            });
+        }
+
+        // FUNGSI MENGIRIM KOMENTAR KE FIREBASE
+        document.getElementById('commentForm').addEventListener('submit', function(e) {
+            e.preventDefault(); 
+            
+            const name = document.getElementById('senderName').value;
+            const text = document.getElementById('commentText').value;
+            
+            const dateObj = new Date();
+            const date = dateObj.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+
+            // Kirim ke database internet
+            database.ref('comments').push({
+                name: name,
+                text: text,
+                date: date
+            });
+            
+            document.getElementById('senderName').value = '';
+            document.getElementById('commentText').value = '';
+        });
+
+        // FUNGSI MUSIK & ANIMASI HATI
         function forcePlayMusic() {
             if(!isPlaying) {
                 music.play();
@@ -268,51 +338,6 @@
                 setTimeout(createHeart, Math.random() * 500);
             }
         }
-
-            // FUNGSI KOMENTAR
-        function loadComments() {
-            const commentsList = document.getElementById('commentsList');
-            const comments = JSON.parse(localStorage.getItem('birthdayComments')) || [];
-            
-            commentsList.innerHTML = ''; 
-            
-            if(comments.length === 0) {
-                commentsList.innerHTML = '<p class="text-gray-500 text-center text-sm italic">Belum ada ucapan. Jadilah yang pertama!</p>';
-                return;
-            }
-
-            comments.forEach(comment => {
-                const commentEl = document.createElement('div');
-                commentEl.className = 'bg-white/60 p-3 rounded-xl border border-pink-100 shadow-sm';
-                commentEl.innerHTML = `
-                    <p class="font-semibold text-pink-600 text-sm">${comment.name} <span class="text-xs text-gray-400 font-normal ml-2">${comment.date}</span></p>
-                    <p class="text-gray-700 text-sm mt-1">${comment.text}</p>
-                `;
-                commentsList.appendChild(commentEl);
-            });
-        }
-
-        document.getElementById('commentForm').addEventListener('submit', function(e) {
-            e.preventDefault(); 
-            
-            const name = document.getElementById('senderName').value;
-            const text = document.getElementById('commentText').value;
-            
-            const dateObj = new Date();
-            const date = dateObj.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
-
-            const newComment = { name, text, date };
-            
-            const comments = JSON.parse(localStorage.getItem('birthdayComments')) || [];
-            comments.unshift(newComment);
-            
-            localStorage.setItem('birthdayComments', JSON.stringify(comments));
-            
-            document.getElementById('senderName').value = '';
-            document.getElementById('commentText').value = '';
-            
-            loadComments();
-        });
         
     </script>
 </body>
