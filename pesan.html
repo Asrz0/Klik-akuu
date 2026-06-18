@@ -87,7 +87,23 @@
             background: #ffb6c1;
             border-radius: 10px;
         }
-        
+                /* ANIMASI BUBBLE MELAYANG */
+        .floating-comment {
+            position: fixed; bottom: -100px;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 105, 180, 0.3);
+            padding: 10px 15px; border-radius: 20px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            font-size: 0.85rem; z-index: 5;
+            pointer-events: none; max-width: 200px; word-wrap: break-word;
+        }
+        @keyframes floatCommentAnim {
+            0% { transform: translateY(0) scale(0.5); opacity: 0; }
+            10% { opacity: 1; scale: 1; }
+            90% { opacity: 1; scale: 1; }
+            100% { transform: translateY(-110vh) scale(0.9); opacity: 0; }
+        }
     </style>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
@@ -197,8 +213,9 @@
     <script>
                 const music = document.getElementById('bgMusic');
         let isPlaying = false;
+        let allCommentsArray = []; // Variabel untuk menyimpan semua komentar
 
-        // --- KONFIGURASI FIREBASE KAMU ---
+        // --- PASTE KODE FIREBASE KAMU DI SINI ---
         const firebaseConfig = {
             apiKey: "AIzaSyAt6Q0g4KCUMhGmBOjvkTI9ZtFfjJ1gojU",
             authDomain: "kado-ultah-fathia.firebaseapp.com",
@@ -209,135 +226,94 @@
             appId: "1:250674373887:web:181c3bc4aeeafa0bcd58ca"
         };
 
-        // Inisialisasi Firebase
         firebase.initializeApp(firebaseConfig);
         const database = firebase.database();
 
-        // Otomatis play musik, hujan hati, dan MUAT KOMENTAR DARI INTERNET
         function initPage() {
             let playPromise = music.play();
-            
             if (playPromise !== undefined) {
-                playPromise.then(_ => {
-                    isPlaying = true;
-                    document.getElementById('musicToggle').innerText = '🔊';
-                }).catch(error => {
+                playPromise.then(_ => { isPlaying = true; document.getElementById('musicToggle').innerText = '🔊'; }).catch(error => {
                     document.getElementById('musicToggle').innerText = '🔇';
                     document.body.addEventListener('click', forcePlayMusic, { once: true });
                     document.body.addEventListener('touchstart', forcePlayMusic, { once: true });
                 });
             }
-
             startHeartRain();
-            listenToComments(); // Panggil fungsi muat komentar
+            listenToComments(); 
+            
+            // Panggil fungsi bubble melayang setiap 3.5 detik
+            setInterval(spawnFloatingComment, 3500); 
         }
 
-        // FUNGSI MEMBACA KOMENTAR SECARA REAL-TIME DARI FIREBASE
+        // 1. FUNGSI LIST KOMENTAR (Bawah) & SIMPAN KE MEMORI (Untuk Bubble)
         function listenToComments() {
             const commentsList = document.getElementById('commentsList');
             
             database.ref('comments').on('value', (snapshot) => {
                 commentsList.innerHTML = ''; 
+                allCommentsArray = []; // Kosongkan array lama
                 const data = snapshot.val();
                 
                 if (!data) {
-                    commentsList.innerHTML = '<p class="text-gray-500 text-center text-sm italic">Belum ada ucapan. Jadilah yang pertama!</p>';
+                    commentsList.innerHTML = '<p class="text-gray-500 text-center text-sm italic">Belum ada ucapan.</p>';
                     return;
                 }
 
-                const commentsArray = [];
-                for (let id in data) {
-                    commentsArray.push(data[id]);
-                }
-                commentsArray.reverse(); 
-
-                commentsArray.forEach(comment => {
+                for (let id in data) { allCommentsArray.push(data[id]); }
+                
+                // Tampilkan list di bawah (paling baru di atas)
+                [...allCommentsArray].reverse().forEach(comment => {
                     const commentEl = document.createElement('div');
                     commentEl.className = 'bg-white/60 p-3 rounded-xl border border-pink-100 shadow-sm';
-                    commentEl.innerHTML = `
-                        <p class="font-semibold text-pink-600 text-sm">${comment.name} <span class="text-xs text-gray-400 font-normal ml-2">${comment.date}</span></p>
-                        <p class="text-gray-700 text-sm mt-1">${comment.text}</p>
-                    `;
+                    commentEl.innerHTML = `<p class="font-semibold text-pink-600 text-sm">${comment.name}</p><p class="text-gray-700 text-sm">${comment.text}</p>`;
                     commentsList.appendChild(commentEl);
                 });
             });
         }
 
-        // FUNGSI MENGIRIM KOMENTAR KE FIREBASE
+        // 2. FUNGSI BUBBLE MELAYANG (Ambil acak dari memori)
+        function spawnFloatingComment() {
+            if (allCommentsArray.length === 0) return;
+            const randomComment = allCommentsArray[Math.floor(Math.random() * allCommentsArray.length)];
+            const bubble = document.createElement('div');
+            bubble.classList.add('floating-comment');
+            bubble.innerHTML = `<span class="font-bold text-pink-600">${randomComment.name}:</span> <span class="text-gray-700">${randomComment.text}</span>`;
+            
+            bubble.style.left = Math.random() * 60 + 10 + 'vw'; 
+            const duration = Math.random() * 5 + 10;
+            bubble.style.animation = `floatCommentAnim ${duration}s linear forwards`;
+            
+            document.getElementById('hearts-container').appendChild(bubble);
+            setTimeout(() => { bubble.remove(); }, duration * 1000);
+        }
+
+        // 3. FUNGSI KIRIM KOMENTAR
         document.getElementById('commentForm').addEventListener('submit', function(e) {
             e.preventDefault(); 
-            
             const name = document.getElementById('senderName').value;
             const text = document.getElementById('commentText').value;
-            
-            const dateObj = new Date();
-            const date = dateObj.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+            const date = new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
 
-            // Kirim ke database internet
-            database.ref('comments').push({
-                name: name,
-                text: text,
-                date: date
-            });
-            
+            database.ref('comments').push({ name: name, text: text, date: date });
             document.getElementById('senderName').value = '';
             document.getElementById('commentText').value = '';
         });
 
-        // FUNGSI MUSIK & ANIMASI HATI
-        function forcePlayMusic() {
-            if(!isPlaying) {
-                music.play();
-                isPlaying = true;
-                document.getElementById('musicToggle').innerText = '🔊';
-            }
-        }
-
-        function toggleMusic() {
-            if (isPlaying) {
-                music.pause();
-                document.getElementById('musicToggle').innerText = '🔇';
-            } else {
-                music.play();
-                document.getElementById('musicToggle').innerText = '🔊';
-            }
-            isPlaying = !isPlaying;
-        }
-
+        // FUNGSI MUSIK & HATI (Jangan dihapus)
+        function forcePlayMusic() { if(!isPlaying) { music.play(); isPlaying = true; document.getElementById('musicToggle').innerText = '🔊'; } }
+        function toggleMusic() { if (isPlaying) { music.pause(); document.getElementById('musicToggle').innerText = '🔇'; } else { music.play(); document.getElementById('musicToggle').innerText = '🔊'; } isPlaying = !isPlaying; }
         function createHeart() {
-            const heart = document.createElement('div');
-            heart.classList.add('heart');
-            
+            const heart = document.createElement('div'); heart.classList.add('heart');
             const symbols = ['❤️', '💖', '✨', '🌸', '🤍'];
             heart.innerText = symbols[Math.floor(Math.random() * symbols.length)];
-            
             heart.style.left = Math.random() * 100 + 'vw';
-            
-            const size = Math.random() * 20 + 15;
-            heart.style.fontSize = size + 'px';
-            
+            const size = Math.random() * 20 + 15; heart.style.fontSize = size + 'px';
             heart.style.animationDuration = Math.random() * 3 + 3 + 's';
-
             document.getElementById('hearts-container').appendChild(heart);
-
-            setTimeout(() => {
-                heart.remove();
-            }, 6000);
+            setTimeout(() => { heart.remove(); }, 6000);
         }
-
-        let heartInterval;
-        function startHeartRain() {
-            for(let i=0; i<20; i++) {
-                setTimeout(createHeart, Math.random() * 1000);
-            }
-            heartInterval = setInterval(createHeart, 500);
-        }
-
-        function addMoreHearts() {
-            for(let i=0; i<40; i++) {
-                setTimeout(createHeart, Math.random() * 500);
-            }
-        }
+        function startHeartRain() { for(let i=0; i<20; i++) { setTimeout(createHeart, Math.random() * 1000); } setInterval(createHeart, 500); }
+        function addMoreHearts() { for(let i=0; i<40; i++) { setTimeout(createHeart, Math.random() * 500); } }
         
     </script>
 </body>
